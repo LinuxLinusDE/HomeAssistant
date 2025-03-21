@@ -1,0 +1,38 @@
+# I2C Konfiguration für LCD
+i2c:
+  sda: 21
+  scl: 22
+  scan: true
+
+# Home Assistant-Sensoren abrufen
+sensor:
+  - platform: homeassistant
+    id: strom_power
+    entity_id: sensor.sensor_shelly_pro3em_strom_total_active_power
+
+  - platform: homeassistant
+    id: bkw_power
+    entity_id: sensor.bkw_total_watt
+
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    id: wifi_strength
+    update_interval: 60s
+
+time:
+  - platform: homeassistant
+    id: home_time
+
+
+display:
+  - platform: lcd_pcf8574
+    dimensions: 16x2
+    address: 0x27
+    update_interval: 5s
+    lambda: |-
+      it.printf(0, 0, "V %.1f W", id(strom_power).state);
+      it.printf(0, 1, "E %.1f W", id(bkw_power).state);
+      it.printf(10, 0, "%.0f dB", id(wifi_strength).state);
+      if (id(home_time).now().is_valid()) {
+        it.strftime(10, 1, "%H:%M", id(home_time).now());
+      }
