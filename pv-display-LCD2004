@@ -1,0 +1,56 @@
+# I2C Konfiguration für 2004 LCD
+i2c:
+  sda: 21
+  scl: 22
+  scan: true
+
+# Home Assistant-Sensoren abrufen
+sensor:
+  - platform: homeassistant
+    id: strom_power
+    entity_id: sensor.sensor_shelly_pro3em_strom_total_active_power
+
+  - platform: homeassistant
+    id: bkw_power
+    entity_id: sensor.bkw_total_watt
+
+  - platform: homeassistant
+    id: bkw1_power
+    entity_id: sensor.bkw1_watt
+
+  - platform: homeassistant
+    id: bkw2_power
+    entity_id: sensor.bkw2_watt
+
+  - platform: homeassistant
+    id: garten_temp
+    entity_id: sensor.sensor_th_outdoor_temperature
+
+  - platform: homeassistant
+    id: wohnz_temp
+    entity_id: sensor.temp_govee_wohn_8b_77_temperature
+
+  - platform: wifi_signal
+    id: wifi_strength
+    update_interval: 30s
+
+time:
+  - platform: homeassistant
+    id: home_time
+
+# 2004 LCD Display Konfiguration
+display:
+  - platform: lcd_pcf8574
+    dimensions: 20x4
+    address: 0x27  # Falls nötig anpassen (Alternativ: 0x3F)
+    update_interval: 5s
+    lambda: |-
+      it.printf(0, 0, "L %.0fW  S %.0fW", id(strom_power).state, id(bkw_power).state);
+      it.printf(0, 1, "1 %.0fW  2 %.0fW", id(bkw1_power).state, id(bkw2_power).state);
+      it.printf(0, 2, "G: %.1fC  W: %.1fC", id(garten_temp).state, id(wohnz_temp).state);
+      it.printf(0, 3, "WiFi: %.0f  ", id(wifi_strength).state);
+      if (id(home_time).now().is_valid()) {
+        it.strftime(12, 3, "%H:%M", id(home_time).now());
+      } else {
+        it.print(12, 3, "--:--");
+      }
